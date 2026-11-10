@@ -13,6 +13,7 @@ from uuid import uuid4
 import aiomqtt
 
 import helpers.ha_messages as ha_msgs
+from helpers import metrics
 import helpers.read_output as ro
 
 logger = logging.getLogger('rtlamr2mqtt')
@@ -165,7 +166,13 @@ class MQTTPublisher:
         while not self.shutdown_event.is_set():
             try:
                 reading = await asyncio.wait_for(self.reading_queue.get(), timeout=1.0)
-                await self.publish_reading(client, reading)
+                try:
+                    with metrics.MQTT_PUBLISH_SECONDS.time():
+                        await self.publish_reading(client, reading)
+                except aiomqtt.MqttError:
+                    metrics.MQTT_PUBLISHES.labels(result='error').inc()
+                    raise
+                metrics.MQTT_PUBLISHES.labels(result='ok').inc()
                 self.reading_queue.task_done()
             except asyncio.TimeoutError:
                 continue

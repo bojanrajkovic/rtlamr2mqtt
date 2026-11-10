@@ -20,7 +20,7 @@ import helpers.config as cnf
 import helpers.buildcmd as cmd
 import helpers.usb_utils as usbutil
 import helpers.info as i
-from helpers import logs
+from helpers import logs, metrics
 from process_manager import ManagedProcess
 from meter_reader import MeterReader
 from mqtt_publisher import MQTTPublisher
@@ -73,6 +73,9 @@ def load_and_validate_config():
 async def main():
     """Main async entry point."""
     config = load_and_validate_config()
+    metrics_port = int(os.getenv('METRICS_PORT', '9100'))
+    metrics.start_server(metrics_port)
+    logger.info('Serving /metrics and /healthz on port %d', metrics_port)
 
     shutdown_event = asyncio.Event()
     listen_mode = config['general']['listen_mode']

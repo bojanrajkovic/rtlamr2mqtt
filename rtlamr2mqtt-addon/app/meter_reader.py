@@ -7,6 +7,7 @@ import asyncio
 import logging
 import os
 
+from helpers import metrics
 import helpers.read_output as ro
 import helpers.usb_utils as usbutil
 
@@ -187,6 +188,8 @@ class MeterReader:
                             meter_id, reading['msg_type'], reading['consumption'],
                         )
                 else:
+                    # Listen mode is skipped: unfiltered meter IDs would be unbounded label values.
+                    metrics.record_reading(meter_id, reading['msg_type'])
                     # Enqueue the reading
                     try:
                         self.reading_queue.put_nowait(reading)

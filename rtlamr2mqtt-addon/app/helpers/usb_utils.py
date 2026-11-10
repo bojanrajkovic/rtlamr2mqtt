@@ -11,6 +11,7 @@ from struct import pack
 import usb.core
 
 from helpers.config import split_rtltcp_host
+from helpers.metrics import USB_RESETS
 
 logger = logging.getLogger('rtlamr2mqtt')
 
@@ -74,13 +75,16 @@ async def reset_usb_device(device_index, retries=4, retry_delay=0.5):
 
     if device is None:
         logger.warning('No RTL-SDR device found at index %d', device_index)
+        USB_RESETS.labels(result='not_found').inc()
         return False
     try:
         device.reset()
         logger.info('USB device at index %d reset successfully', device_index)
+        USB_RESETS.labels(result='ok').inc()
         return True
     except usb.core.USBError as e:
         logger.warning('Failed to reset USB device at index %d: %s', device_index, e)
+        USB_RESETS.labels(result='error').inc()
         return False
 
 

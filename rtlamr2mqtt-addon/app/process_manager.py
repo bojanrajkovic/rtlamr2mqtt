@@ -11,6 +11,8 @@ from collections import deque
 from typing import Callable
 from shutil import which
 
+from helpers import metrics
+
 logger = logging.getLogger('rtlamr2mqtt')
 
 # Cache stdbuf path at module load time
@@ -86,6 +88,7 @@ class ManagedProcess:
             full_command = [_stdbuf_path, '-oL'] + full_command
 
         logger.info('Starting %s: %s', self.name, ' '.join(full_command))
+        metrics.PROCESS_STARTS.labels(process=self.name).inc()
 
         self._recent_lines.clear()
         try:
