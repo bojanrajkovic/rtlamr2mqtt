@@ -20,6 +20,7 @@ import helpers.config as cnf
 import helpers.buildcmd as cmd
 import helpers.usb_utils as usbutil
 import helpers.info as i
+from helpers import logs
 from process_manager import ManagedProcess
 from meter_reader import MeterReader
 from mqtt_publisher import MQTTPublisher
@@ -38,12 +39,10 @@ logger = logging.getLogger('rtlamr2mqtt')
 
 
 def setup_logging(verbosity: str):
-    """Configure logging with the given verbosity level."""
-    logging.basicConfig(
-        format='[%(asctime)s] %(levelname)s: %(message)s',
-        level=VERBOSITY_MAP.get(verbosity, logging.INFO),
-    )
-    logger.setLevel(VERBOSITY_MAP.get(verbosity, logging.INFO))
+    """Configure JSON logging with the given verbosity level."""
+    level = VERBOSITY_MAP.get(verbosity, logging.INFO)
+    logs.setup_logging(level)
+    logger.setLevel(level)
 
 
 def load_and_validate_config():
@@ -55,8 +54,7 @@ def load_and_validate_config():
 
     status, msg, config = cnf.load_config(config_path)
     if status != 'success':
-        # Use basic logging since we don't have config yet
-        logging.basicConfig(format='[%(asctime)s] %(levelname)s: %(message)s')
+        setup_logging('info')
         logger.critical(msg)
         sys.exit(1)
 

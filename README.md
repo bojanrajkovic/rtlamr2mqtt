@@ -110,13 +110,27 @@ general:
 Leave the `meters` list empty (or remove it entirely). Start the add-on and open the **Log** tab. You will see a warning followed by one log line per discovered meter:
 
 ```
-WARNING: LISTEN MODE ACTIVE — no meter filtering, no MQTT publishing. Check logs for "New meter" lines to discover your meter ID, then configure it and disable listen_mode.
-
-INFO: New meter | ID: 12345678 | Type: SCM  | Consumption: 1978226
-INFO: New meter | ID: 87654321 | Type: R900 | Consumption: 4555831
+{"time": "...", "level": "warn", "service": "rtlamr2mqtt", "module": "rtlamr2mqtt", "msg": "LISTEN MODE ACTIVE — no meter filtering, no MQTT publishing. ..."}
+{"time": "...", "level": "info", "service": "rtlamr2mqtt", "module": "rtlamr2mqtt", "msg": "New meter | ID: 12345678 | Type: SCM  | Consumption: 1978226"}
+{"time": "...", "level": "info", "service": "rtlamr2mqtt", "module": "rtlamr2mqtt", "msg": "New meter | ID: 87654321 | Type: R900 | Consumption: 4555831"}
 ```
 
 Each meter is logged **once per session** regardless of how many times it broadcasts. Note the **ID** and **Type** for the meter you want to track, then configure it normally and set `listen_mode: false`.
+
+### Log format
+
+Every log line is one JSON object on stdout:
+
+| Field | Value |
+|---|---|
+| `time` | RFC 3339 UTC, millisecond precision |
+| `level` | `debug`, `info`, `warn`, `error`, or `fatal` |
+| `service` | Always `rtlamr2mqtt` |
+| `module` | Logger name. rtl_tcp and rtlamr output logs as `rtlamr2mqtt.rtl_tcp` and `rtlamr2mqtt.rtlamr` at `debug` |
+| `msg` | The message |
+| `err` | On exceptions only: `type`, `message`, and `stack` |
+
+Each published reading logs at `info` with `meter_id`, `meter_name`, `protocol`, `reading`, `raw_consumption`, and `unit`. The full rtlamr message for that reading logs at `debug` as `rtlamr_message`.
 
 ### Docker / Standalone
 
