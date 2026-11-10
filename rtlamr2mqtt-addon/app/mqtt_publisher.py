@@ -225,7 +225,19 @@ class MQTTPublisher:
             retain=False,
         )
 
-        logger.info('Published reading for meter %s: %s', meter_id, formatted)
+        fields = {
+            'meter_id': meter_id,
+            'meter_name': meter_config.get('name'),
+            'protocol': attributes['protocol'],
+            'reading': formatted,
+            'raw_consumption': consumption,
+            'unit': meter_config.get('unit_of_measurement'),
+        }
+        logger.info('Published reading for meter %s: %s', meter_id, formatted, extra=fields)
+        logger.debug(
+            'rtlamr message for meter %s', meter_id,
+            extra={'meter_id': meter_id, 'rtlamr_message': reading['message']},
+        )
 
     async def _periodic_discovery(self, client: aiomqtt.Client, interval: int = 300):
         """

@@ -200,7 +200,7 @@ class MeterReader:
                         logger.warning('Reading queue full, dropped oldest reading')
 
                 meters_seen.add(meter_id)
-                logger.debug('Meter %s reading: %s', meter_id, reading['consumption'])
+                logger.debug('Meter %s reading: %s', meter_id, reading['consumption'], extra={'meter_id': meter_id})
 
                 # Check if all meters have been read (sleep_for mode)
                 if self.sleep_for > 0 and meters_seen == set(self.meter_ids):

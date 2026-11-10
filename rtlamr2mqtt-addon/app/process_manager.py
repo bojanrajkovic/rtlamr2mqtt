@@ -54,6 +54,8 @@ class ManagedProcess:
         self._process: asyncio.subprocess.Process | None = None
         self._drain_task: asyncio.Task | None = None
         self._recent_lines: deque = deque(maxlen=20)
+        # Subprocess output logs under its own module name, e.g. rtlamr2mqtt.rtlamr
+        self._output_logger = logger.getChild(name)
 
     @property
     def is_alive(self) -> bool:
@@ -152,7 +154,7 @@ class ManagedProcess:
             line = line_bytes.decode('utf-8', errors='replace').strip()
             if line:
                 self._recent_lines.append(line)
-                logger.debug('%s: %s', self.name, line)
+                self._output_logger.debug(line)
             if self.ready_pattern in line:
                 return True
 
@@ -163,7 +165,7 @@ class ManagedProcess:
         """
         while (line := await self.read_line()) is not None:
             if line:
-                logger.debug('%s: %s', self.name, line)
+                self._output_logger.debug(line)
 
     async def _terminate(self, timeout: float, interval: float = 0.25) -> bool:
         """
