@@ -6,6 +6,12 @@ import sys
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'app'))
 
 
+@pytest.fixture(autouse=True)
+def ephemeral_metrics_port(monkeypatch):
+    """main() starts the metrics server; port 0 lets every test bind its own."""
+    monkeypatch.setenv('METRICS_PORT', '0')
+
+
 @pytest.fixture
 def sample_config():
     """A complete, valid configuration dict matching what config.load_config() returns."""

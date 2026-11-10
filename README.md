@@ -132,6 +132,24 @@ Every log line is one JSON object on stdout:
 
 Each published reading logs at `info` with `meter_id`, `meter_name`, `protocol`, `reading`, `raw_consumption`, and `unit`. The full rtlamr message for that reading logs at `debug` as `rtlamr_message`.
 
+### Metrics and health check
+
+An HTTP server on `METRICS_PORT` (default `9100`) serves two paths:
+
+- `/metrics`: Prometheus metrics, listed below.
+- `/healthz`: `200` while a configured meter was read in the last `HEALTHZ_MAX_SILENCE_SECONDS` (default `1800`), `503` after that. Startup counts as a reading. Use it as a liveness probe so a receiver that stops decoding gets restarted. Raise the limit if `sleep_for` is longer than 30 minutes.
+
+| Metric | Labels | Meaning |
+|---|---|---|
+| `rtlamr_messages_decoded_total` | `meter_id`, `protocol` | Messages decoded for a configured meter |
+| `rtlamr_meter_last_seen_timestamp_seconds` | `meter_id` | Unix time of the meter's last message |
+| `rtlamr_mqtt_publish_total` | `result` (`ok`, `error`) | Readings published to MQTT |
+| `rtlamr_mqtt_publish_duration_seconds` | | Time to publish one reading |
+| `rtlamr_process_starts_total` | `process` (`rtl_tcp`, `rtlamr`) | Child process launches, including the first |
+| `rtlamr_usb_resets_total` | `result` (`ok`, `error`, `not_found`) | USB resets of the RTL-SDR device |
+
+Listen mode records no meter metrics.
+
 ### Docker / Standalone
 
 Create a minimal config file:
